@@ -20,6 +20,39 @@ JSON Parsing                 Gson
 API Simulation               Postman Mock Server
 Token Storage                SharedPreferences via TokenManager
 
+OAuth 2.0 Flow Explained
+1. End User / Resource Owner
+•  This is the person using the app (e.g., SecureNote user).
+•	They initiate the login or authorization process.
+2. Authorization Request
+•	The app sends a request to the Authorization Server asking for permission to access the user’s data.
+•	This usually opens a login screen or consent form.
+3. User Authorization
+•	The user approves the request (e.g., logs in or grants access).
+•	The Authorization Server confirms the user’s identity and permission.
+4. Access Token Request
+•	The app now asks the Authorization Server for an access token.
+•	This token is a credential that proves the app has permission to access resources.
+5. Access Token
+•	The Authorization Server returns the token to the app.
+•	This token is used in future API calls to authenticate the app.
+6. Resource Request
+•	The app sends a request to the Resource Server (e.g., to fetch notes, user data).
+•	It includes the access token in the request header (usually as Authorization: Bearer).
+7. Resource Access
+•	The Resource Server validates the token.
+•	If valid, it returns the requested data to the app.
+
+OAuth 2.0 Step              	   SecureNote Component                                	Description                                                                 
+Authorization Request  	         LoginFragment → POST /oauth/token	                  User enters credentials; app requests token from Postman mock server
+User Authorization	            Mock server returns static token	                     No real user consent — mock server simulates approval
+Access Token Request	            ApiService.java- handles token request	               OkHttp sends request; TokenManager stores token
+Access Token	                  TokenManager saves token in SharedPreference	         Token (`abc123`) used for future requests
+Resource Request	               NotesFragment → GET /notes	                           App fetches notes using `Authorization: Bearer abc123`
+Resource Access	               Mock server returns note list	                        Notes displayed in UI
+Create Resource	               AddNoteFragment → `POST /notes`             	         App sends new note JSON to mock server                                    
+Logout	                       `TokenManager.clearToken()` → `LoginFragment`	         Token cleared; user returned to login screen  
+
 
 
 App Flow
@@ -65,6 +98,7 @@ Postman mock servers are stateless — new notes won’t persist unless manually
 Project Structure
 
 com.example.oauthsecurenoteapp
+├── MainActivity.java         # Hosts fragments, entry point of app
 ├── LoginFragment.java        # Handles login flow (POST /oauth/token)
 ├── NotesFragment.java        # Displays notes list (GET /notes)
 ├── AddNoteFragment.java      # Adds new notes (POST /notes)
@@ -73,6 +107,7 @@ com.example.oauthsecurenoteapp
 ├── Note.java                 # Model class for notes
 └── res/
     └── layout/
+        ├── activity_main.xml  -  # // Main layout with FrameLayout
         ├── fragment_login.xml
         ├── fragment_notes.xml
         ├── fragment_add_note.xml
